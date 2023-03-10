@@ -1,4 +1,3 @@
-# StopGame Parser to SQL
 import sqlite3
 from bs4 import BeautifulSoup
 import requests
@@ -6,26 +5,35 @@ import os
 
 AMOUNT_PAGES_TO_PARSE = 3
 DB_NAME = "stopgame_ru.db"
-DEBUG = True
+TABLE_NAME = "top_games"
+GAME_NAME_IN_TABLE = "game"
+RATING_NAME_IN_TABLE = "rating"
+DEBUG = False
 Clear_DB_On_Run = True
+PERCENTAGE_MODE = True
 
 if DEBUG:
     print("Debug mode on")
     print("Amount pages to parse:", AMOUNT_PAGES_TO_PARSE)
     print("Filename:", DB_NAME)
+    print("Name of DB table:", TABLE_NAME)
+    print("Name of the game in table:", GAME_NAME_IN_TABLE)
+    print("Name of the rating in table:", RATING_NAME_IN_TABLE)
     print("Clear DB when run:", Clear_DB_On_Run)
     print()
 
 if Clear_DB_On_Run:
-    os.remove(DB_NAME)
-    print("Database was cleared!\n")
+    if os.path.isfile(DB_NAME):
+        os.remove(DB_NAME)
+    if DEBUG:
+        print("Database was cleared!\n")
 
 if not os.path.isfile(DB_NAME):
     db = sqlite3.connect(DB_NAME)
     c = db.cursor()
-    c.execute("""CREATE TABLE top_games (
-                game text,
-                rating text)""")
+    c.execute(f"""CREATE TABLE {TABLE_NAME} (
+                {GAME_NAME_IN_TABLE} text,
+                {RATING_NAME_IN_TABLE} text)""")
     db.commit()
     db.close()
     if DEBUG:
@@ -36,6 +44,9 @@ page = 1
 games = []
 ratings = []
 for i in range(AMOUNT_PAGES_TO_PARSE):
+    if PERCENTAGE_MODE:
+        percent = round(page/AMOUNT_PAGES_TO_PARSE*100)
+        print(f"Current position in parsing: {percent}%")
     link = f"https://stopgame.ru/topgames?p={page}"
     if DEBUG:
         print("StopGame page to parse:")
@@ -80,6 +91,6 @@ for i in combine:
 db = sqlite3.connect(DB_NAME)
 c = db.cursor()
 for game, rating in games_and_ratings:
-    c.execute(f'INSERT INTO top_games VALUES ("{game}", "{rating}")')
+    c.execute(f'INSERT INTO {TABLE_NAME} VALUES ("{game}", "{rating}")')
     db.commit()
 db.close()
