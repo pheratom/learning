@@ -1,0 +1,85 @@
+# StopGame Parser to SQL
+import sqlite3
+from bs4 import BeautifulSoup
+import requests
+import os
+
+AMOUNT_PAGES_TO_PARSE = 3
+DB_NAME = "stopgame_ru.db"
+DEBUG = True
+Clear_DB_On_Run = True
+
+if DEBUG:
+    print("Debug mode on")
+    print("Amount pages to parse:", AMOUNT_PAGES_TO_PARSE)
+    print("Filename:", DB_NAME)
+    print("Clear DB when run:", Clear_DB_On_Run)
+    print()
+
+if Clear_DB_On_Run:
+    os.remove(DB_NAME)
+    print("Database was cleared!\n")
+
+if not os.path.isfile(DB_NAME):
+    db = sqlite3.connect(DB_NAME)
+    c = db.cursor()
+    c.execute("""CREATE TABLE top_games (
+                game text,
+                rating text)""")
+    db.commit()
+    db.close()
+    if DEBUG:
+        print("Database was created!")
+        print()
+
+page = 1
+games = []
+ratings = []
+for i in range(AMOUNT_PAGES_TO_PARSE):
+    link = f"https://stopgame.ru/topgames?p={page}"
+    if DEBUG:
+        print("StopGame page to parse:")
+        print(link)
+        print()
+    r = requests.get(link)
+    bs_page = BeautifulSoup(r.content, 'html.parser')
+
+    for el in bs_page.select('._games-grid_v95ji_304 > div[data-key] > a'):
+        link = f"https://stopgame.ru{el['href']}"
+        if DEBUG:
+            print("StopGame page to get name:")
+            print(link)
+        r2 = requests.get(link)
+        bs_page_2 = BeautifulSoup(r2.content, 'html.parser')
+        for el2 in bs_page_2.select('._title_qrsvr_270'):
+            game = el2.text
+            games.append(game)
+        rating = el.select("._container_67304_13 > ._info-container_67304_30 > ._rating_67304_39")[0].text
+        ratings.append(rating)
+    page += 1
+
+combine = []
+
+for i in range(AMOUNT_PAGES_TO_PARSE*30):
+    combine.append(f"{games[i]} ^ {ratings[i]}")
+
+
+def sort_function(value):
+    return value.split()[-1]
+
+
+combine = sorted(combine, key=sort_function, reverse=True)
+
+games_and_ratings = []
+
+for i in combine:
+    game = " ".join(i.split()[:-2])
+    rating = "".join(i.split()[-1])
+    games_and_ratings.append((game, rating))
+
+db = sqlite3.connect(DB_NAME)
+c = db.cursor()
+for game, rating in games_and_ratings:
+    c.execute(f'INSERT INTO top_games VALUES ("{game}", "{rating}")')
+    db.commit()
+db.close()
