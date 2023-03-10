@@ -3,13 +3,13 @@ from bs4 import BeautifulSoup
 import requests
 import os
 
-AMOUNT_PAGES_TO_PARSE = 3
+AMOUNT_PAGES_TO_PARSE = 10
 DB_NAME = "stopgame_ru.db"
 TABLE_NAME = "top_games"
 GAME_NAME_IN_TABLE = "game"
 RATING_NAME_IN_TABLE = "rating"
 DEBUG = False
-Clear_DB_On_Run = True
+CLEAR_DB_ON_RUN = True
 PERCENTAGE_MODE = True
 
 if DEBUG:
@@ -19,10 +19,10 @@ if DEBUG:
     print("Name of DB table:", TABLE_NAME)
     print("Name of the game in table:", GAME_NAME_IN_TABLE)
     print("Name of the rating in table:", RATING_NAME_IN_TABLE)
-    print("Clear DB when run:", Clear_DB_On_Run)
+    print("Clear DB when run:", CLEAR_DB_ON_RUN)
     print()
 
-if Clear_DB_On_Run:
+if CLEAR_DB_ON_RUN:
     if os.path.isfile(DB_NAME):
         os.remove(DB_NAME)
     if DEBUG:
