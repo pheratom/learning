@@ -11,9 +11,9 @@ My python homework
 
 ##### name of table (TABLE_NAME),
 
-##### option to delete db on startup (Clear_DB_On_Run),
+##### option to delete db on startup (CLEAR_DB_ON_RUN),
 
-##### show percentage when parsing (Percentage_Mode),
+##### show percentage when parsing (PERCENTAGE_MODE),
 
 ##### custom game name in table (GAME_NAME_IN_TABLE),
 
